@@ -33,8 +33,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg2://uei:uei@postgres:5432/uei
+      DATABASE_URL: postgresql+psycopg://uei:uei@postgres:5432/uei
       REDIS_URL: redis://redis:6379/0
+      INTERNAL_API_TOKEN: local-dev-token
     volumes:
       - ./services/api:/app
     depends_on:
@@ -43,18 +44,20 @@ services:
       redis:
         condition: service_healthy
 
-
   worker:
     build: ./services/worker
     container_name: uei_worker
     environment:
-      DATABASE_URL: postgresql+psycopg2://uei:uei@postgres:5432/uei
       REDIS_URL: redis://redis:6379/0
+      API_BASE_URL: http://api:8000
+      INTERNAL_API_TOKEN: local-dev-token
     depends_on:
       redis:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      api:
+        condition: service_started
 
 volumes:
   uei_pgdata:

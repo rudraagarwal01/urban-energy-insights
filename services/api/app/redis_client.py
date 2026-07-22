@@ -1,7 +1,18 @@
-import os
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Protocol
+
 import redis
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+from app.config import get_settings
 
-def get_redis():
-    return redis.Redis.from_url(REDIS_URL, decode_responses=True)
+
+class StreamPublisher(Protocol):
+    def xadd(self, name: str, fields: dict[str, str]) -> str: ...
+
+
+@lru_cache(maxsize=1)
+def get_redis() -> redis.Redis:
+    settings = get_settings()
+    return redis.Redis.from_url(settings.redis_url, decode_responses=True)
